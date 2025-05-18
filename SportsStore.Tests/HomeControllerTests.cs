@@ -9,7 +9,7 @@ namespace SportsStore.Tests;
 public class HomeControllerTests
 {
     [Fact]
-    public void Can_Use_Repository()
+    public void CanUseRepository()
     {
         Mock<IStoreRepository> mock = new();
         mock.Setup(m => m.Products).Returns((new Product[]
@@ -30,7 +30,7 @@ public class HomeControllerTests
     }
 
     [Fact]
-    public void Can_Paginate()
+    public void CanPaginate()
     {
         Mock<IStoreRepository> mock = new();
         mock.Setup(m => m.Products).Returns((new Product[]
@@ -55,7 +55,7 @@ public class HomeControllerTests
     }
 
     [Fact]
-    public void Can_Send_Pagination_View_Model()
+    public void CanSendPaginationViewModel()
     {
         Mock<IStoreRepository> mock = new();
         mock.Setup(m => m.Products).Returns((new Product[]
@@ -80,7 +80,7 @@ public class HomeControllerTests
     }
 
     [Fact]
-    public void Can_Filter_Products()
+    public void CanFilterProducts()
     {
         Mock<IStoreRepository> mock = new();
         mock.Setup(m => m.Products).Returns((new Product[]
@@ -91,7 +91,6 @@ public class HomeControllerTests
             new Product { ProductID = 4, Name = "Product4", Category = "Category4" },
             new Product { ProductID = 5, Name = "Product5", Category = "Category5" }
         }).AsQueryable<Product>());
-
         HomeController controller = new(mock.Object);
         controller.PageSize = 3;
 
@@ -101,5 +100,33 @@ public class HomeControllerTests
         Assert.Equal(2, result.Length);
         Assert.True(result[0].Name == "Product2" && result[0].Category == "Category2");
         Assert.True(result[1].Name == "Product4" && result[1].Category == "Category2");
+    }
+
+    [Fact]
+    public void GenerateCategorySpecificProductCount()
+    {
+        Mock<IStoreRepository> mock = new();
+        mock.Setup(m => m.Products).Returns((new Product[]
+        {
+            new Product { ProductID = 1, Name = "Product1", Category = "Category1" },
+            new Product { ProductID = 2, Name = "Product2", Category = "Category2" },
+            new Product { ProductID = 3, Name = "Product3", Category = "Category1" },
+            new Product { ProductID = 4, Name = "Product4", Category = "Category2" },
+            new Product { ProductID = 5, Name = "Product5", Category = "Category3" }
+        }).AsQueryable<Product>());
+        HomeController target = new(mock.Object);
+        target.PageSize = 3;
+        Func<ViewResult, ProductsListViewModel?> GetModel = result
+            => result?.ViewData?.Model as ProductsListViewModel;
+
+        int? result1 = GetModel(target.Index("Category1"))?.PagingInfo.TotalItems;
+        int? result2 = GetModel(target.Index("Category2"))?.PagingInfo.TotalItems;
+        int? result3 = GetModel(target.Index("Category3"))?.PagingInfo.TotalItems;
+        int? allResults = GetModel(target.Index(null))?.PagingInfo.TotalItems;
+
+        Assert.Equal(2, result1);
+        Assert.Equal(2, result2);
+        Assert.Equal(1, result3);
+        Assert.Equal(5, allResults);
     }
 }

@@ -11,7 +11,7 @@ namespace SportsStore.Tests;
 public class PageLinkTagHelperTests
 {
     [Fact]
-    public void Can_Generate_Page_Links()
+    public void CanGeneratePageLinks()
     {
         var urlHelper = new Mock<IUrlHelper>();
         urlHelper.SetupSequence(x => x.Action(It.IsAny
