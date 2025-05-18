@@ -24,8 +24,7 @@ public class PageLinkTagHelperTests
                 f.GetUrlHelper(It.IsAny<ActionContext>()))
             .Returns(urlHelper.Object);
         var viewContext = new Mock<ViewContext>();
-        PageLinkTagHelper helper =
-            new PageLinkTagHelper(urlHelperFactory.Object)
+        PageLinkTagHelper helper = new (urlHelperFactory.Object)
             {
                 PageModel = new PagingInfo
                 {
@@ -36,11 +35,11 @@ public class PageLinkTagHelperTests
                 ViewContext = viewContext.Object,
                 PageAction = "Test"
             };
-        TagHelperContext ctx = new TagHelperContext(
+        TagHelperContext ctx = new (
             new TagHelperAttributeList(),
             new Dictionary<object, object>(), "");
         var content = new Mock<TagHelperContent>();
-        TagHelperOutput output = new TagHelperOutput("div",
+        TagHelperOutput output = new ("div",
             new TagHelperAttributeList(),
             (cache, encoder) => Task.FromResult(content.Object));
 

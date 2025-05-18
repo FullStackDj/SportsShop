@@ -11,16 +11,17 @@ public class HomeControllerTests
     [Fact]
     public void Can_Use_Repository()
     {
-        Mock<IStoreRepository> mock = new Mock<IStoreRepository>();
+        Mock<IStoreRepository> mock = new();
         mock.Setup(m => m.Products).Returns((new Product[]
         {
             new Product { ProductID = 1, Name = "Product1" },
             new Product { ProductID = 2, Name = "Product2" }
         }).AsQueryable<Product>());
-        HomeController controller = new HomeController(mock.Object);
+        HomeController controller = new(mock.Object);
 
         ProductsListViewModel result =
-            controller.Index()?.ViewData.Model as ProductsListViewModel ?? new();
+            controller.Index(null)?.ViewData.Model
+                as ProductsListViewModel ?? new();
 
         Product[] prodArray = result.Products.ToArray();
         Assert.True(prodArray.Length == 2);
@@ -31,7 +32,7 @@ public class HomeControllerTests
     [Fact]
     public void Can_Paginate()
     {
-        Mock<IStoreRepository> mock = new Mock<IStoreRepository>();
+        Mock<IStoreRepository> mock = new();
         mock.Setup(m => m.Products).Returns((new Product[]
         {
             new Product { ProductID = 1, Name = "Product1" },
@@ -40,15 +41,65 @@ public class HomeControllerTests
             new Product { ProductID = 4, Name = "Product4" },
             new Product { ProductID = 5, Name = "Product5" }
         }).AsQueryable<Product>());
-        HomeController controller = new HomeController(mock.Object);
+        HomeController controller = new(mock.Object);
         controller.PageSize = 3;
 
         ProductsListViewModel result =
-            controller.Index(2)?.ViewData.Model as ProductsListViewModel ?? new();
+            controller.Index(null, 2)?.ViewData.Model
+                as ProductsListViewModel ?? new();
 
         Product[] prodArray = result.Products.ToArray();
         Assert.True(prodArray.Length == 2);
         Assert.Equal("Product4", prodArray[0].Name);
         Assert.Equal("Product5", prodArray[1].Name);
+    }
+
+    [Fact]
+    public void Can_Send_Pagination_View_Model()
+    {
+        Mock<IStoreRepository> mock = new();
+        mock.Setup(m => m.Products).Returns((new Product[]
+        {
+            new Product { ProductID = 1, Name = "Product1" },
+            new Product { ProductID = 2, Name = "Product2" },
+            new Product { ProductID = 3, Name = "Product3" },
+            new Product { ProductID = 4, Name = "Product4" },
+            new Product { ProductID = 5, Name = "Product5" }
+        }).AsQueryable<Product>());
+        HomeController controller = new(mock.Object) { PageSize = 3 };
+
+        ProductsListViewModel result =
+            controller.Index(null, 2)?.ViewData.Model as
+                ProductsListViewModel ?? new();
+
+        PagingInfo pageInfo = result.PagingInfo;
+        Assert.Equal(2, pageInfo.CurrentPage);
+        Assert.Equal(3, pageInfo.ItemsPerPage);
+        Assert.Equal(5, pageInfo.TotalItems);
+        Assert.Equal(2, pageInfo.TotalPages);
+    }
+
+    [Fact]
+    public void Can_Filter_Products()
+    {
+        Mock<IStoreRepository> mock = new();
+        mock.Setup(m => m.Products).Returns((new Product[]
+        {
+            new Product { ProductID = 1, Name = "Product1", Category = "Category1" },
+            new Product { ProductID = 2, Name = "Product2", Category = "Category2" },
+            new Product { ProductID = 3, Name = "Product3", Category = "Category3" },
+            new Product { ProductID = 4, Name = "Product4", Category = "Category4" },
+            new Product { ProductID = 5, Name = "Product5", Category = "Category5" }
+        }).AsQueryable<Product>());
+
+        HomeController controller = new(mock.Object);
+        controller.PageSize = 3;
+
+        Product[] result = (controller.Index("Category2", 1)?.ViewData.Model
+            as ProductsListViewModel ?? new()).Products.ToArray();
+        // Assert
+        Assert.Equal(2, result.Length);
+        Assert.True(result[0].Name == "Product2" && result[0].Category == "Category2");
+        Assert.True(result[1].Name == "Product4" && result[1].Category == "Category2");
     }
 }
