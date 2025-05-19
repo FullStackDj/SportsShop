@@ -42,8 +42,7 @@ public class NavigationMenuViewComponentTests
 
         Assert.True(Enumerable.SequenceEqual(new string[]
         {
-            "Category1",
-            "Category2", "Category3"
+            "Category1", "Category2", "Category3"
         }, results));
     }
 
