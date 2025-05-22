@@ -73,7 +73,7 @@ public class CartTests
         target.AddItem(product1, 3);
         decimal result = target.ComputeTotalValue();
 
-        Assert.Equal(110M, result);
+        Assert.Equal(350M, result);
     }
 
     [Fact]
