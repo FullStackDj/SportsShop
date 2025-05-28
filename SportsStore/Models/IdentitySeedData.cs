@@ -8,26 +8,26 @@ public static class IdentitySeedData
     private const string adminUser = "Admin";
     private const string adminPassword = "pa$$word";
 
-    public static async void EnsurePopulated(IApplicationBuilder app)
+    public static async Task EnsurePopulated(IApplicationBuilder app)
     {
-        AppIdentityDbContext context = app.ApplicationServices
-            .CreateScope().ServiceProvider
-            .GetRequiredService<AppIdentityDbContext>();
+        using var scope = app.ApplicationServices.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
         if (context.Database.GetPendingMigrations().Any())
         {
-            context.Database.Migrate();
+            await context.Database.MigrateAsync();
         }
 
-        UserManager<IdentityUser> userManager = app.ApplicationServices
-            .CreateScope().ServiceProvider
-            .GetRequiredService<UserManager<IdentityUser>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-        IdentityUser user = await userManager.FindByNameAsync(adminUser);
+        var user = await userManager.FindByNameAsync(adminUser);
         if (user == null)
         {
-            user = new IdentityUser("Admin");
-            user.Email = "admin@admin.com";
-            user.PhoneNumber = "123-456";
+            user = new IdentityUser(adminUser)
+            {
+                Email = "admin@admin.com",
+                PhoneNumber = "123-456"
+            };
             await userManager.CreateAsync(user, adminPassword);
         }
     }
